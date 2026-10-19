@@ -11,6 +11,9 @@ concurrency:
   group: chan-daily
   cancel-in-progress: false
 
+permissions:
+  contents: write   # 允许把报告与K线图提交回仓库
+
 jobs:
   analyze:
     runs-on: ubuntu-latest
