@@ -35,7 +35,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent
 WATCH_DIR = BASE_DIR / "watchlist"
 
-REPORT_URL = "https://github.com/ghgzl/daily_stock_analysis/blob/main/chan_report.md"
+REPORT_URL = "https://github.com/ghgzl/daily-stock-pro/blob/main/chan_report.md"
 RADAR_URL = "https://appapppy-f4cxuoxhwyuegj4bjw9fqu.streamlit.app/"  # 你的 chan.py 版网页，可按需替换
 
 
