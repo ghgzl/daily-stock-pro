@@ -179,7 +179,7 @@ def send_email(subject, markdown_text):
     html = f"""<html><body style="font-family:-apple-system,Segoe UI,Microsoft YaHei,sans-serif;font-size:14px;line-height:1.7">
 <h2 style="color:#1a56db;border-bottom:2px solid #1a56db;padding-bottom:8px">🎯 缠论三类买点扫描（chan.py）</h2>
 {html}
-<p style="color:#bbb;font-size:12px;margin-top:24px">— daily_stock_analysis · 三类买点扫描 · 引擎 chan.py（经典纯 Python 缠论框架）</p>
+<p style="color:#bbb;font-size:12px;margin-top:24px">— daily-stock-pro · 三类买点扫描 · 引擎 chan.py（经典纯 Python 缠论框架）</p>
 </body></html>"""
 
     domain = sender.split("@")[-1].lower()

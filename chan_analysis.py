@@ -202,7 +202,7 @@ def send_report_email():
 <h2 style="color:#1a56db;border-bottom:2px solid #1a56db;padding-bottom:8px">📈 批量缠论分析报告（chan.py）</h2>
 <p style="color:#888">数据区间：{START_DATE} ~ {END_DATE} ｜ 个股+指数共{len(stock_list)}个标的</p>
 {html}
-<p style="color:#bbb;font-size:12px;margin-top:24px">— 由 daily_stock_analysis 自动生成 · 缠论分析（chan.py 经典纯 Python 框架）</p>
+<p style="color:#bbb;font-size:12px;margin-top:24px">— 由 daily-stock-pro 自动生成 · 缠论分析（chan.py 经典纯 Python 框架）</p>
 </body></html>"""
 
     # ---- K线图转为 CID 内嵌（图片随邮件发送，不依赖 GitHub 外链）----
