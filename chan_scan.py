@@ -252,6 +252,10 @@ def main():
             if completed % 50 == 0 or completed == len(todo):
                 print(f"[进度] {completed}/{len(todo)}（跳过{skipped}）| 命中 {len(hits)} 只")
 
+    # ---- 命中结果排序：按三买日期降序（最新信号在前，历史旧信号保留不过滤）----
+    hits.sort(key=lambda h: h[1])                 # 先按代码，保证同日期时顺序稳定
+    hits.sort(key=lambda h: h[3], reverse=True)   # 再按三买日期 YYYY-MM-DD 降序
+
     # ---- 生成报告 ----
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
     universe_label = "全部A股" if SCAN_UNIVERSE == "all_a" else SCAN_UNIVERSE
@@ -261,7 +265,7 @@ def main():
         f"> 判定口径：**最新一个买卖点 = 第三类买点（3a/3b）**\n",
     ]
     if hits:
-        lines.append(f"## ✅ 命中 {len(hits)} 只（最新买卖点为三买）\n")
+        lines.append(f"## ✅ 命中 {len(hits)} 只（最新买卖点为三买，按三买时间降序）\n")
         lines.append("| 序号 | 名称 | 代码 | 三买类型 | 三买时间 | 三买价格 | 最新收盘 |")
         lines.append("|---|---|---|---|---|---|---|")
         for k, (name, code, t, tm, price, last) in enumerate(hits, 1):
