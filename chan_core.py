@@ -54,6 +54,13 @@ def get_bars_df(code, kind, start, end):
             raise ValueError(f"列不完整: {list(df.columns)}")
         df = df.dropna(subset=need).reset_index(drop=True)
         df["dt"] = pd.to_datetime(df["dt"])
+        # 统一裁剪到 [start, end]：部分数据源（如 akshare stock_zh_index_daily）不支持日期参数，
+        # 会返回全历史，导致指数统计基准与个股不一致（沪深300/上证50/创业板指 曾因此跑成十多年窗口）
+        raw_n = len(df)
+        df = df[(df["dt"] >= pd.Timestamp(start)) & (df["dt"] <= pd.Timestamp(end))]
+        df = df.reset_index(drop=True)
+        if raw_n - len(df) > 100:
+            print(f"  [数据裁剪] {code}: 源返回 {raw_n} 根，按 {start}~{end} 裁到 {len(df)} 根")
         for c in ["open", "close", "high", "low", "vol"]:
             df[c] = df[c].astype(float)
         # chan.py 引擎数据校验严格（要求 high>=open/close 且 low<=open/close）
