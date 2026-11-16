@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # 保证 chan_core / chanlib 可导入
-from chan_core import get_bars_df, run_chan, check_bei_chi, format_bsp_type, ctime_str
+from chan_core import get_bars_df, run_chan, check_bei_chi, format_bsp_type, ctime_str, latest_trade_date
 from Common.CEnum import BI_DIR
 
 # ====================== 【可自由修改参数】======================
@@ -43,7 +43,7 @@ stock_list = [
 # =================================================================
 
 if not END_DATE:
-    END_DATE = datetime.now().strftime("%Y-%m-%d")
+    END_DATE = latest_trade_date()   # 北京时间今天；今天休市则退回最近交易日
 
 # 中文字体设置
 plt.rcParams["font.sans-serif"] = ["WenQuanYi Zen Hei", "SimHei", "DejaVu Sans"]
