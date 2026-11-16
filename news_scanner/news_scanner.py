@@ -413,7 +413,10 @@ def backtest(events_path: Optional[str] = None) -> None:
     print("  - 指标: 胜率 / 平均超额 / 最大回撤 / 信号频率 / 冲击成本敏感性")
     try:
         ak = _ak()
-        idx = ak.stock_zh_index_daily(symbol="sh000300")  # 基准
+        fn = getattr(ak, "index_zh_daily_sina", None) or getattr(ak, "stock_zh_index_daily", None)
+        if fn is None:
+            raise RuntimeError("akshare 未提供指数日线接口")
+        idx = fn(symbol="sh000300")  # 基准
         print(f"  - 基准数据可用: 沪深300 最近 {len(idx)} 个交易日")
     except Exception as e:
         print(f"  - 基准数据获取失败: {e}")
