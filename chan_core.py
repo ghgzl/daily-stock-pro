@@ -115,13 +115,20 @@ def get_bars_df(code, kind, start, end):
             if not sources:
                 errs.append("akshare: 指数接口缺失（index_zh_hist_em/index_zh_a_hist、index_zh_daily_sina/stock_zh_index_daily 都找不到）")
         else:
-            sources = [
-                ("stock_zh_a_daily", lambda: ak.stock_zh_a_daily(
+            # akshare 1.20.46 又改了名：stock_zh_a_daily -> stock_zh_a_daily_sina，
+            # stock_zh_a_hist -> stock_zh_a_hist_em。同样新名优先、旧名回退。
+            sina_stk = getattr(ak, "stock_zh_a_daily_sina", None) or getattr(ak, "stock_zh_a_daily", None)
+            em_stk = getattr(ak, "stock_zh_a_hist_em", None) or getattr(ak, "stock_zh_a_hist", None)
+            sources = []
+            if sina_stk is not None:
+                sources.append((sina_stk.__name__, lambda f=sina_stk: f(
                     symbol=("sh" if code.startswith("6") else "sz") + code,
-                    start_date=start, adjust="qfq")),
-                ("stock_zh_a_hist", lambda: ak.stock_zh_a_hist(
-                    symbol=code, period="daily", start_date=start_n, end_date=end_n, adjust="qfq")),
-            ]
+                    start_date=start, adjust="qfq")))
+            if em_stk is not None:
+                sources.append((em_stk.__name__, lambda f=em_stk: f(
+                    symbol=code, period="daily", start_date=start_n, end_date=end_n, adjust="qfq")))
+            if not sources:
+                errs.append("akshare: 个股接口缺失（stock_zh_a_daily_sina/stock_zh_a_daily、stock_zh_a_hist_em/stock_zh_a_hist 都找不到）")
         for name, fetcher in sources:
             try:
                 raw = fetcher()
