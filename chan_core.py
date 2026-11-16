@@ -134,8 +134,10 @@ def get_bars_df(code, kind, start, end):
             else:
                 yf_code = code + (".SS" if code.startswith("6") else ".SZ")
             if yf_code:
+                # auto_adjust=True：取前复权价（与 akshare 的 adjust="qfq" 同口径）
+                # 否则兜底路径用的是不复权价，除权日会出现假跳空，笔/中枢判定与主路径不一致
                 raw = yf.download(yf_code, start=start, end=end,
-                                  auto_adjust=False, progress=False, threads=False, timeout=12)
+                                  auto_adjust=True, progress=False, threads=False, timeout=12)
                 if raw is not None and not raw.empty:
                     raw = raw.reset_index()
                     if hasattr(raw.columns, "get_level_values"):
