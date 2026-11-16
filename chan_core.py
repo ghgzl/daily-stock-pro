@@ -27,8 +27,8 @@ MIN_K_LINES = 600  # 用户要求的提醒阈值
 def get_bars_df(code, kind, start, end):
     """获取K线 DataFrame（dt/open/close/high/low/vol/amount）
     数据源顺序由环境变量 CHAN_DATA_SOURCE 控制：
-      auto    = yfinance(Yahoo) -> akshare东财 -> akshare新浪  （默认，GitHub Actions 海外用）
-      akshare = akshare东财 -> akshare新浪 -> yfinance          （国内本机推荐，避免 yahoo 超时）
+      auto    = akshare东财 -> akshare新浪 -> yfinance          （默认；新浪收盘后即含当日K线）
+      akshare = 同 auto                                         （国内本机推荐，避免 yahoo 超时）
       yfinance= 仅 yfinance
     个股后缀：6xx->.SS，0xx/3xx->.SZ；指数用映射表
     """
@@ -140,10 +140,10 @@ def get_bars_df(code, kind, start, end):
             df = fetch_yfinance()
     elif source_mode == "yfinance":
         df = fetch_yfinance()
-    else:  # auto：yfinance 优先（海外 Actions 环境）
-        df = fetch_yfinance()
+    else:  # auto / akshare：akshare 优先（东财->新浪，收盘后即含当日K线），yfinance 兜底
+        df = fetch_akshare()
         if df is None:
-            df = fetch_akshare()
+            df = fetch_yfinance()
     if df is None:
         raise ConnectionError(f"所有数据源失败: {' | '.join(errs[-3:])}")
     return df
