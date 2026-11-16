@@ -35,7 +35,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           # 依赖先行：即使字体装不上，报告与邮件也要能跑
-          pip install --quiet akshare yfinance "pandas>=2.0,<3" "numpy<3" matplotlib requests markdown2 python-dotenv
+          pip install --quiet "akshare==1.20.46" yfinance "pandas>=2.0,<3" "numpy<3" matplotlib requests markdown2 python-dotenv
           # 中文字体 best-effort：先用 apt，apt 不可用（如 runner DNS 抖动）则直接下载字体文件
           if [ -z "$(fc-list :lang=zh 2>/dev/null)" ]; then
             sudo apt-get update -y || echo "apt update 失败，跳过"
