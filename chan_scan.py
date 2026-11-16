@@ -24,7 +24,7 @@ import matplotlib
 matplotlib.use("Agg")
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))  # 保证 chan_core / chanlib 可导入
-from chan_core import get_bars_df, run_chan, ctime_str
+from chan_core import get_bars_df, run_chan, ctime_str, latest_trade_date
 
 # 本机支持 scan.env 配置邮件与扫描参数（云端用系统环境变量）
 # override=True：让 scan.env 覆盖 start_scan.bat 里的默认值，用户改参数只需编辑 scan.env
@@ -37,7 +37,7 @@ except Exception:
 # ====================== 【可修改参数】======================
 SCAN_UNIVERSE = os.getenv("SCAN_UNIVERSE", "cs500")   # all_a(全A股) / cs500 / hs300 / custom:代码,代码
 SCAN_START = os.getenv("SCAN_START", "2004-01-01")    # 数据起始
-SCAN_END = os.getenv("SCAN_END", "") or datetime.now().strftime("%Y-%m-%d")
+SCAN_END = os.getenv("SCAN_END", "") or latest_trade_date()   # 北京时间今天（休市则退回最近交易日）
 SCAN_LIMIT = int(os.getenv("SCAN_LIMIT", "0"))        # 0=全部
 SCAN_WORKERS = int(os.getenv("SCAN_WORKERS", "8"))    # 并发线程数（全A建议8-16，越大越快但易被限流）
 SCAN_RESUME = os.getenv("SCAN_RESUME", "1") == "1"    # 断点续跑：1=跳过上次已扫描的股票（默认开）
