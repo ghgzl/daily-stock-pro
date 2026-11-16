@@ -97,7 +97,7 @@ def get_bars_df(code, kind, start, end):
         return None
 
     def fetch_akshare():
-        """akshare 东财 -> 新浪；成功返回 df，失败返回 None"""
+        """akshare 新浪 -> 东财；成功返回 df，失败返回 None"""
         start_n = start.replace("-", "")
         end_n = end.replace("-", "")
         sources = []
@@ -106,21 +106,21 @@ def get_bars_df(code, kind, start, end):
             # stock_zh_index_daily -> index_zh_daily_sina。这里新名优先、旧名回退，两代版本都能跑。
             hist_fn = getattr(ak, "index_zh_hist_em", None) or getattr(ak, "index_zh_a_hist", None)
             sina_fn = getattr(ak, "index_zh_daily_sina", None) or getattr(ak, "stock_zh_index_daily", None)
-            if hist_fn is not None:
-                sources.append((hist_fn.__name__, lambda f=hist_fn: f(
-                    symbol=code, period="daily", start_date=start_n, end_date=end_n)))
             if sina_fn is not None:
                 sources.append((sina_fn.__name__, lambda f=sina_fn: f(
                     symbol=("sh" if code.startswith("000") or code.startswith("60") else "sz") + code)))
+            if hist_fn is not None:
+                sources.append((hist_fn.__name__, lambda f=hist_fn: f(
+                    symbol=code, period="daily", start_date=start_n, end_date=end_n)))
             if not sources:
                 errs.append("akshare: 指数接口缺失（index_zh_hist_em/index_zh_a_hist、index_zh_daily_sina/stock_zh_index_daily 都找不到）")
         else:
             sources = [
-                ("stock_zh_a_hist", lambda: ak.stock_zh_a_hist(
-                    symbol=code, period="daily", start_date=start_n, end_date=end_n, adjust="qfq")),
                 ("stock_zh_a_daily", lambda: ak.stock_zh_a_daily(
                     symbol=("sh" if code.startswith("6") else "sz") + code,
                     start_date=start, adjust="qfq")),
+                ("stock_zh_a_hist", lambda: ak.stock_zh_a_hist(
+                    symbol=code, period="daily", start_date=start_n, end_date=end_n, adjust="qfq")),
             ]
         for name, fetcher in sources:
             try:
