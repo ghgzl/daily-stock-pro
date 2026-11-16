@@ -127,10 +127,12 @@ def get_bars_df(code, kind, start, end):
                 raw = fetcher()
                 if raw is None or raw.empty:
                     errs.append(f"{name} 返回空数据")
+                    print(f"  [数据源空] {code} {name}")
                     continue
                 return to_df(raw)
             except Exception as e:
                 errs.append(f"{name}: {type(e).__name__}: {str(e)[:80]}")
+                print(f"  [数据源失败] {code} {name}: {type(e).__name__}: {str(e)[:80]}")
                 time.sleep(2)
         return None
 
