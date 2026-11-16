@@ -6,6 +6,7 @@
 import os
 import sys
 import time
+from datetime import datetime, timedelta, timezone
 
 import pandas as pd
 
@@ -21,6 +22,54 @@ from DataAPI.YfDataSrc import CYfDataSrc
 
 DEFAULT_START = "2024-01-01"
 MIN_K_LINES = 600  # 用户要求的提醒阈值
+CN_TZ = timezone(timedelta(hours=8))   # 北京时间：Actions 跑在 UTC，直接用 now() 会差一天
+
+_TRADE_CAL = None
+
+
+def cn_today():
+    """北京时间的今天（避免 GitHub Actions 的 UTC 时钟把数据区间算成前一天）"""
+    return datetime.now(CN_TZ).date()
+
+
+def _trade_dates():
+    """A股交易日历（新浪）。取不到就返回空集合，由 latest_trade_date 退回"跳过周末"。"""
+    global _TRADE_CAL
+    if _TRADE_CAL is not None:
+        return _TRADE_CAL
+    _TRADE_CAL = set()
+    try:
+        import akshare as ak
+        # akshare 1.20.46 又改名：tool_trade_date_hist_sina -> calendar_trade_date_hist_sina
+        fn = getattr(ak, "calendar_trade_date_hist_sina", None) or getattr(ak, "tool_trade_date_hist_sina", None)
+        if fn is not None:
+            df = fn()
+            if df is not None and len(df) > 0:
+                col = "trade_date" if "trade_date" in df.columns else df.columns[0]
+                _TRADE_CAL = set(pd.to_datetime(df[col]).dt.date)
+    except Exception as e:
+        print(f"  [交易日历] 获取失败，按跳过周末处理: {type(e).__name__}: {str(e)[:60]}")
+    return _TRADE_CAL
+
+
+def latest_trade_date(day=None, max_back=20):
+    """<= day（默认北京时间今天）的最近一个 A 股交易日；今天休市则往前找。
+
+    返回 'YYYY-MM-DD'。END_DATE 用它：今天是交易日就取今天，否则取上一个交易日。
+    """
+    day = day or cn_today()
+    cal = _trade_dates()
+    for i in range(max_back):
+        d = day - timedelta(days=i)
+        if cal and d in cal:
+            return d.strftime("%Y-%m-%d")
+        if not cal and d.weekday() < 5:
+            return d.strftime("%Y-%m-%d")
+    # 日历覆盖不到该日期（如明年春节）时，退回"跳过周末"
+    d = day
+    while d.weekday() >= 5:
+        d -= timedelta(days=1)
+    return d.strftime("%Y-%m-%d")
 
 
 # ==================== 数据获取 ====================
