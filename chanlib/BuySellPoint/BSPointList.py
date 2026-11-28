@@ -239,7 +239,10 @@ class CBSPointList(Generic[LINE_TYPE, LINE_LIST_TYPE]):
             break_bi = bi_list[0]
         if BSP_CONF.bsp2_follow_1 and (not bsp1_bi or bsp1_bi.idx not in self.bsp_store_flat_dict):
             return
-        retrace_rate = bsp2_bi.amp()/break_bi.amp()
+        # 笔的振幅 amp() 是一字板/长期停牌这类"零涨跌幅笔"的除数，可能为 0，
+        # 直接相除会抛 ZeroDivisionError（2026-11-27 扫描里太钢不锈/陆家嘴就是这么挂的）
+        _break_amp = break_bi.amp()
+        retrace_rate = bsp2_bi.amp()/_break_amp if _break_amp else float("inf")
         bsp2_flag = retrace_rate <= BSP_CONF.max_bs2_rate
         if bsp2_flag:
             feature_dict = {
@@ -282,7 +285,8 @@ class CBSPointList(Generic[LINE_TYPE, LINE_LIST_TYPE]):
 
             if bsp2s_break_bsp1(bsp2s_bi, break_bi):
                 break
-            retrace_rate = abs(bsp2s_bi.get_end_val()-break_bi.get_end_val())/break_bi.amp()
+            _break_amp = break_bi.amp()
+            retrace_rate = abs(bsp2s_bi.get_end_val()-break_bi.get_end_val())/_break_amp if _break_amp else float("inf")
             if retrace_rate > BSP_CONF.max_bs2_rate:
                 break
             feature_dict = {
