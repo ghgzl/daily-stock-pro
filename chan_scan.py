@@ -18,6 +18,7 @@ import os
 import sys
 import time
 import random
+import traceback
 from datetime import datetime
 
 import matplotlib
@@ -147,6 +148,9 @@ def scan_one(item):
                     round(latest.klu.close, 3), round(df.iloc[-1]["close"], 3))
         return ("ok", code, name, None)
     except Exception as e:
+        # 打印堆栈：以前只回一行错误串，出问题只能靠猜（2026-11-27 的除零就是这样丢了线索）
+        print(f"❌ {name}({code}) 异常堆栈：")
+        traceback.print_exc(limit=6)
         return ("fail", code, name, f"{type(e).__name__}: {str(e)[:120]}")
 
 
@@ -288,7 +292,19 @@ def main():
 
     subject = f"缠论三买扫描：命中{len(hits)}只（{now}）"
     send_email(subject, report)
-    return 0 if not fails else 1
+
+    # 退出码：个别标的异常不该把整条 workflow 判红（报告和邮件都已正常产出）。
+    # 只有"一只都没分析成功"或"失败率超过 5%"才算整体失败，便于真正暴露数据源级故障。
+    analyzed = completed - len(short)
+    if analyzed == 0:
+        print("⚠️ 没有任何标的分析成功，按失败退出")
+        return 1
+    if len(fails) / analyzed > 0.05:
+        print(f"⚠️ 失败率 {len(fails)}/{analyzed} 超过 5%，按失败退出")
+        return 1
+    if fails:
+        print(f"⚠️ 有 {len(fails)} 只标的分析失败（已写入报告统计，不影响整体结果）")
+    return 0
 
 
 if __name__ == "__main__":
