@@ -4,6 +4,7 @@
 挂在 chan.py 的 DataAPI 目录下，供 data_src="custom:YfDataSrc.CYfDataSrc" 使用
 """
 import datetime
+import threading
 
 from Common.CEnum import DATA_FIELD
 from Common.CTime import CTime
@@ -91,16 +92,18 @@ class CYfDataSrc(CCommonStockApi):
     - 独立使用：无缓存时自动走 fetch_df（akshare → yfinance）
     """
 
-    _cache_df = None
+    # 线程隔离的缓存：三买扫描用 8 个线程并发跑不同标的，
+    # 早期用类属性 cls._cache_df 会让线程之间互相覆盖，导致 A 股票被用 B 股票的数据分析。
+    _cache_local = threading.local()
 
     @classmethod
     def set_cache(cls, df):
         """注入预取好的 DataFrame（date/open/close/high/low/volume 列）"""
-        cls._cache_df = df
+        cls._cache_local.df = df
 
     @classmethod
     def clear_cache(cls):
-        cls._cache_df = None
+        cls._cache_local.df = None
 
     def __init__(self, code, k_type, begin_date, end_date, autype):
         super().__init__(code, k_type, begin_date, end_date, autype)
@@ -119,7 +122,7 @@ class CYfDataSrc(CCommonStockApi):
         pass
 
     def get_kl_data(self):
-        df = self._cache_df
+        df = getattr(self._cache_local, "df", None)
         if df is None:
             begin = str(self.begin_date)[:10] if self.begin_date else "2020-01-01"
             end = str(self.end_date)[:10] if self.end_date else datetime.date.today().strftime("%Y-%m-%d")
